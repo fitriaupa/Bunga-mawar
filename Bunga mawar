@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Scientific</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #1e061b;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .calculator {
+            width: 350px;
+            background-color: #292929;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+        }
+
+        #display {
+            width: 100%;
+            height: 70px;
+            background-color: #333;
+            color: #e8eaed;
+            font-size: 32px;
+            border: none;
+            text-align: right;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            padding-right: 10px;
+            box-sizing: border-box;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        button {
+            height: 50px;
+            font-size: 18px;
+            background-color: #423c43;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(205, 105, 205, 0.2);
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .equal {
+            background-color: #f88ae2;
+            color: black;
+        }
+
+        .equal:hover {
+            background-color: #f666cd;
+        }
+
+        .history {
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+            background-color: #333;
+            border-radius: 5px;
+            padding: 10px;
+            color: #e8eaed;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="display" disabled>
+        <div class="buttons">
+            <!-- Baris 1 -->
+            <button onclick="clearDisplay()">AC</button>
+            <button onclick="deleteLast()">C</button>
+            <button onclick="appendToDisplay('%')">%</button>
+            <button onclick="appendToDisplay('/')">÷</button>
+            <!-- Baris 2 -->
+            <button onclick="appendToDisplay('√(')">√</button>
+            <button onclick="appendFunction('xʸ', 'Math.pow(')">xʸ</button>
+            <button onclick="appendToDisplay('Math.PI')">π</button>
+            <button onclick="appendToDisplay('*')">×</button>
+            <!-- Baris 3 -->
+            <button onclick="appendToDisplay('7')">7</button>
+            <button onclick="appendToDisplay('8')">8</button>
+            <button onclick="appendToDisplay('9')">9</button>
+            <button onclick="appendToDisplay('-')">−</button>
+            <!-- Baris 4 -->
+            <button onclick="appendToDisplay('4')">4</button>
+            <button onclick="appendToDisplay('5')">5</button>
+            <button onclick="appendToDisplay('6')">6</button>
+            <button onclick="appendToDisplay('+')">+</button>
+            <!-- Baris 5 -->
+            <button onclick="appendToDisplay('1')">1</button>
+            <button onclick="appendToDisplay('2')">2</button>
+            <button onclick="appendToDisplay('3')">3</button>
+            <button onclick="appendToDisplay('(')">(</button>
+            <!-- Baris 6 -->
+            <button onclick="appendToDisplay('0')">0</button>
+            <button onclick="appendToDisplay('.')">.</button>
+            <button onclick="appendToDisplay(')')">)</button>
+            <button class="equal" onclick="calculate()">=</button>
+            <!-- Fungsi Ilmiah -->
+            <button onclick="appendFunction('sin(', 'Math.sin(')">sin</button>
+            <button onclick="appendFunction('cos(', 'Math.cos(')">cos</button>
+            <button onclick="appendFunction('tan(', 'Math.tan(')">tan</button>
+            <button onclick="appendFunction('log(', 'Math.log(')">log</button>
+        </div>
+    </div>
+
+    <div class="history" id="history">Riwayat Perhitungan:</div>
+
+    <script>
+        let displayScreen = "";
+        let functionMap = {}; 
+        const historyElement = document.getElementById('history');
+
+        function appendFunction(symbol, func) {
+            functionMap[symbol] = func;
+            displayScreen += symbol;
+            document.getElementById('display').value = displayScreen;
+        }
+
+        function appendToDisplay(value) {
+            displayScreen += value;
+            document.getElementById('display').value = displayScreen;
+        }
+
+        function clearDisplay() {
+            displayScreen = "";
+            document.getElementById('display').value = "";
+        }
+
+        function deleteLast() {
+            displayScreen = displayScreen.slice(0, -1);
+            document.getElementById('display').value = displayScreen;
+        }
+
+        function calculate() {
+            try {
+                let expression = displayScreen;
+
+                // Menangani simbol akar (√)
+                expression = expression.replace(/√\((.*?)\)/g, (_, x) => Math.sqrt(${x}));
+
+                // Menangani fungsi persen (%)
+                expression = expression.replace(/(\d+)%/g, (_, x) => (${x} / 100));
+
+                // Konversi sin, cos, tan ke radian
+                expression = expression
+                    .replace(/sin\((.*?)\)/g, (_, x) => Math.sin((${x}) * Math.PI / 180))
+                    .replace(/cos\((.*?)\)/g, (_, x) => Math.cos((${x}) * Math.PI / 180))
+                    .replace(/tan\((.*?)\)/g, (_, x) => Math.tan((${x}) * Math.PI / 180));
+
+                const result = eval(expression);
+
+                if (isNaN(result)) throw new Error("Invalid Calculation");
+
+                document.getElementById('display').value = result;
+                addToHistory(displayScreen + " = " + result);
+                displayScreen = result.toString();
+            } catch (error) {
+                document.getElementById('display').value = "Error";
+                displayScreen = "";
+            }
+        }
+
+        function addToHistory(entry) {
+            const newEntry = document.createElement('div');
+            newEntry.textContent = entry;
+            historyElement.appendChild(newEntry);
+            historyElement.scrollTop = historyElement.scrollHeight;
+        }
+    </script>
+</body>
+</html>
